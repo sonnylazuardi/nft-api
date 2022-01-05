@@ -41,9 +41,15 @@ export default async (req, res) => {
 
   const result = $(".AccountHeader--address").text();
 
+  let images = [];
+
+  $(".AssetMedia--img .Image--image").each((_, elm) => {
+    images.push($(elm).attr("href"));
+  });
+
   await browser.close();
 
   res.statusCode = 200;
   res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify({ result }));
+  res.end(JSON.stringify({ result, images }));
 };
