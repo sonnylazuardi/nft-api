@@ -21,7 +21,7 @@ export default async (req, res) => {
   page.setUserAgent(
     "Opera/9.80 (J2ME/MIDP; Opera Mini/5.1.21214/28.2725; U; ru) Presto/2.8.119 Version/11.10"
   );
-  await page.goto(`https://value.app/${slug}`);
+  await page.goto(`https://opensea.io/${slug}`);
 
   let content = await page.content();
   var $ = cheerio.load(content);
@@ -39,7 +39,7 @@ export default async (req, res) => {
   //   id = arr[1];
   // }
 
-  const result = $(".block.text-gray-500").text();
+  const result = $(".AccountHeader--address").text();
 
   await browser.close();
 
