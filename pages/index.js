@@ -1,5 +1,6 @@
 import Head from "next/head";
 import React from "react";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -10,6 +11,12 @@ export default function Home() {
       </Head>
 
       <main>
+        <Image
+          src="https://storage.opensea.io/files/b23a9c05057c1527e8c9db24f5f28532.svg"
+          alt="Picture of the author"
+          width={500}
+          height={500}
+        />
         <h1 className="title">
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>

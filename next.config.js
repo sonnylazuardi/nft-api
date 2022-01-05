@@ -21,4 +21,8 @@ module.exports = {
       },
     ];
   },
+  images: {
+    domains: ["storage.opensea.io"],
+    formats: ["image/avif", "image/webp"],
+  },
 };

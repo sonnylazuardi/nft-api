@@ -32,14 +32,32 @@ export default async (req, res) => {
   ).then((res) => res.json());
 
   let images = [];
+  let svgs = [];
+  let svgImages = [];
 
   try {
     result2.assets.forEach((v) => {
-      images.push(v.image_preview_url);
+      if (v?.image_preview_url) {
+        if (v.image_preview_url?.includes(".svg")) {
+          svgs.push(v.image_preview_url);
+        } else {
+          images.push(v.image_preview_url);
+        }
+      }
     });
-  } catch (e) {}
+
+    svgImages = await Promise.all(
+      svgs.map((v) =>
+        fetch(v).then((res) => {
+          return res.text();
+        })
+      )
+    ).then((data) => data);
+  } catch (e) {
+    console.log(e);
+  }
 
   res.statusCode = 200;
   res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify({ address, images }));
+  res.end(JSON.stringify({ address, images, svgImages }));
 };
