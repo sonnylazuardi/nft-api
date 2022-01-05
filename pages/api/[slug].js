@@ -1,7 +1,3 @@
-const puppeteer = require("puppeteer-core");
-const cheerio = require("cheerio");
-const chrome = require("chrome-aws-lambda");
-
 export default async (req, res) => {
   const slug = req?.query?.slug;
   if (!slug) {
@@ -11,45 +7,39 @@ export default async (req, res) => {
     return;
   }
 
-  const browser = await puppeteer.launch({
-    args: chrome.args,
-    executablePath: await chrome.executablePath,
-    headless: chrome.headless,
-  });
+  const result = await fetch(
+    `https://api.thegraph.com/subgraphs/name/ensdomains/ens`,
+    {
+      method: "post",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        query:
+          "\n  query lookup($name: String!) {\n    domains(\n      where: { name: $name }\n    ) {\n      resolvedAddress {\n        id\n      }\n    }\n  }\n",
+        variables: { name: slug },
+      }),
+    }
+  ).then((res) => res.json());
 
-  const page = await browser.newPage();
-  page.setUserAgent(
-    "Opera/9.80 (J2ME/MIDP; Opera Mini/5.1.21214/28.2725; U; ru) Presto/2.8.119 Version/11.10"
-  );
-  await page.goto(`https://opensea.io/${slug}`);
+  let address = null;
+  try {
+    address = result.data.domains[0].resolvedAddress.id;
+  } catch (e) {}
 
-  let content = await page.content();
-  var $ = cheerio.load(content);
-  $.prototype.exists = function (selector) {
-    return this.find(selector).length > 0;
-  };
-
-  // let id = null;
-  // const isLive = $("body").exists('[data-style="LIVE"]');
-  // if (isLive) {
-  //   const url = $("ytm-compact-video-renderer .compact-media-item-image").attr(
-  //     "href"
-  //   );
-  //   const arr = url.split("?v=");
-  //   id = arr[1];
-  // }
-
-  const result = $(".AccountHeader--address").text();
+  const result2 = await fetch(
+    `https://api.opensea.io/api/v1/assets?owner=${address}&limit=50&offset=0`
+  ).then((res) => res.json());
 
   let images = [];
 
-  $(".AssetMedia--img .Image--image").each((_, elm) => {
-    images.push($(elm).attr("href"));
-  });
-
-  await browser.close();
+  try {
+    result2.assets.forEach((v) => {
+      images.push(v.image_preview_url);
+    });
+  } catch (e) {}
 
   res.statusCode = 200;
   res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify({ result, images }));
+  res.end(JSON.stringify({ address, images }));
 };
